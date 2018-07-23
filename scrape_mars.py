@@ -72,7 +72,7 @@ def scrape():
     facts_df.set_index("description")
 
     # convert dataframe back to html
-    mars_table = facts_df.to_html('table.html')
+    mars_table = facts_df.to_html
     mars_data["Mars_Facts"] = mars_table
     # Mars Hemispheres
 
