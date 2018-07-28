@@ -18,6 +18,7 @@ def index():
 def scrape():
     mars_data = mongo.db.mars_data
     mars_info = scrape_mars.scrape()
+    print(mars_info)
     mars_data.update(
         {},
         mars_info,

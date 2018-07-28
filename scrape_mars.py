@@ -1,4 +1,5 @@
 import os
+import time
 from bs4 import BeautifulSoup as bs
 import requests
 import pandas as pd
@@ -23,7 +24,7 @@ def scrape():
     news_title = soup.find("div", class_="content_title").text
     
     # get the article summary
-    news_p = soup.find("div", class_="article_teaser_body").text
+    news_p = soup.find("div", class_="rollover_description_inner").text
     
     mars_data["Mars_news_title"] = news_title
     mars_data["Mars_summary"] = news_p 
@@ -44,9 +45,13 @@ def scrape():
 
     mars_data["Featured_Image"] = featured_image_url
 
-    ## Mars Weather
+    ## Visit the Mars Weather twitter account and scrap the lates Mars weather tweet.
+    import tweepy
+    # Twitter API Keys
+    from config import consumer_key, consumer_secret, access_token, access_token_secret
 
-
+    # Setup Tweepy API Authentication
+    
     url_twitter = "https://twitter.com/marswxreport?lang=en"
     browser.visit(url_twitter)
 
@@ -54,15 +59,16 @@ def scrape():
     html = browser.html
     soup = bs(html, "html.parser")
 
-    # find, scrape and print the latest tweet
     latest_tweet = soup.find("div", class_="js-tweet-text-container").text
-    mars_data["Mars_Weather"] = latest_tweet
-
+    mars_data["Weather report"] = latest_tweet
     
     ### Mars Facts - Visit the Mars Facts webpage here and use Pandas to scrape the table 
     # containing facts about the planet including Diameter, Mass, etc.
 
+    import pandas as pd
+    
     url_mars_facts = "https://space-facts.com/mars/"
+    browser.visit(url_mars_facts)
 
     tables = pd.read_html(url_mars_facts)
     facts_df = tables[0] 
@@ -72,13 +78,16 @@ def scrape():
     facts_df.set_index("description")
 
     # convert dataframe back to html
-    mars_table = facts_df.to_html
+    mars_html_table = facts_df.to_html(classes = "table")
+    mars_table = mars_html_table.replace('\n', ' ')
     mars_data["Mars_Facts"] = mars_table
+    
     # Mars Hemispheres
 
-
     mars_url = "https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars"
-
+    browser.visit(mars_url)
+    html = browser.html
+    soup = bs(html, 'html.parser')
     hemisphere_image_urls = [
         {"title": "Valles Marineris Hemisphere", "img_url": "https://astrogeology.usgs.gov/search/map/Mars/Viking/valles_marineris_enhanced"},
         {"title": "Cerberus Hemisphere", "img_url": "https://astrogeology.usgs.gov/search/map/Mars/Viking/cerberus_enhanced"},
@@ -86,8 +95,28 @@ def scrape():
         {"title": "Syrtis Major Hemisphere", "img_url": "https://astrogeology.usgs.gov/search/map/Mars/Viking/syrtis_major_enhanced"},
     ]
 
-    browser.quit()
+    # browser.visit(mars_url)
+    # html = browser.html
+    # soup = bs(html, 'html.parser')
+    # mars_hemis=[]
 
+    # for i in range (4):
+    #     time.sleep(5)
+    #     images = browser.find_by_id('h3').click()
+    #     images[i].click()
+    #     html = browser.html
+    #     soup = bs(html, 'html.parser')
+    #     partial = soup.find("img", class_="wide-image")["src"]
+    #     img_title = soup.find("h2",class_="title").text
+    #     img_url = 'https://astrogeology.usgs.gov'+ partial
+    #     dictionary={"title":img_title,"img_url":img_url}
+    #     mars_hemis.append(dictionary)
+    #     browser.back()
+
+    # mars_data['mars_hemis'] = mars_hemis
+
+    browser.quit()
+    print(mars_data)
     return mars_data
 
 
